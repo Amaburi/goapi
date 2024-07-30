@@ -3,6 +3,7 @@ package main
 import (
 	ArtistController "goapi/controller/ArtistController"
 	CompanyController "goapi/controller/CompanyController"
+	PlaylistController "goapi/controller/PlaylistController"
 	albumController "goapi/controller/albumController"
 	models "goapi/model/album"
 
@@ -36,6 +37,14 @@ func main() {
 		artists.POST("/", ArtistController.Create)
 		artists.PUT("/:id", ArtistController.Update)
 		artists.DELETE("/:id", ArtistController.Delete)
+	}
+	playlist := router.Group("/api/playlist")
+	{
+		playlist.GET("/", PlaylistController.Index)
+		playlist.GET("/:id", PlaylistController.Show)
+		playlist.POST("/", PlaylistController.Create)
+		playlist.PUT("/:id", PlaylistController.Update)
+		playlist.DELETE("/:id", PlaylistController.Delete)
 	}
 	router.Run()
 }
