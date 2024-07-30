@@ -1,8 +1,13 @@
 package models
 
 import (
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB
@@ -31,16 +36,22 @@ type Artist struct {
 }
 
 func ConnectDB() {
-	dsn := "root:@tcp(localhost:3306)/album" // Replace with your actual credentials
-	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-
+	eerr := godotenv.Load()
+	if eerr != nil {
+		log.Fatalf("Failed to load .env")
+	}
+	dsn := os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASSWORD") + "@tcp(" + os.Getenv("DB_HOST") + ")/" + os.Getenv("DB_NAME")
+	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
 		panic(err)
 	}
 
 	// AutoMigrate will create the "albums" table if it doesn't exist based on the struct definition
-	database.AutoMigrate(&Album{})
-	database.AutoMigrate(&Company{})
-	database.AutoMigrate(&Artist{})
+	err = database.AutoMigrate(&Album{}, &Company{}, &Artist{})
+	if err != nil {
+		log.Fatalf("Failed to auto migrate: %v", err)
+	}
 	DB = database
 }
