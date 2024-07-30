@@ -69,7 +69,7 @@ func ConnectDB() {
 	}
 
 	// AutoMigrate will create the "albums" table if it doesn't exist based on the struct definition
-	err = database.AutoMigrate(&Album{}, &Company{}, &Artist{})
+	err = database.AutoMigrate(&Album{}, &Company{}, &Artist{}, &PlayList{}, &Song{})
 	if err != nil {
 		log.Fatalf("Failed to auto migrate: %v", err)
 	}
