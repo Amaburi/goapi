@@ -76,6 +76,6 @@ func ConnectDB() {
 	}
 
 	// AutoMigrate the models
-	database.AutoMigrate(&Album{}, &Company{}, &Artist{}, &PlayList{}, &Song{})
+	database.AutoMigrate(&Album{}, &Company{}, &Artist{}, &PlayList{}, &Song{}, &User{})
 	DB = database
 }

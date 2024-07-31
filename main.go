@@ -7,7 +7,7 @@ import (
 	SongController "goapi/controller/SongController"
 	UserController "goapi/controller/UserController"
 	albumController "goapi/controller/albumController"
-	"goapi/middleware" // Import the middleware package
+	"goapi/middleware"
 	models "goapi/model/album"
 
 	"github.com/gin-gonic/gin"
@@ -53,26 +53,44 @@ func main() {
 	// Protected routes
 	protectedRoutes := router.Group("/api")
 	protectedRoutes.Use(middleware.AuthMiddleware())
+
+	album := protectedRoutes.Group("/albums")
 	{
-		albums.POST("/albums", albumController.Create)
-		albums.PUT("/albums/:id", albumController.Update)
-		albums.DELETE("/albums/:id", albumController.Delete)
+		album.POST("", albumController.Create)
+		album.PUT("/:id", albumController.Update)
+		album.DELETE("/:id", albumController.Delete)
+	}
 
-		companies.POST("/companies", CompanyController.Create)
-		companies.PUT("/companies/:id", CompanyController.Update)
-		companies.DELETE("/companies/:id", CompanyController.Delete)
+	// Companies routes
+	company := protectedRoutes.Group("/companies")
+	{
+		company.POST("", CompanyController.Create)
+		company.PUT("/:id", CompanyController.Update)
+		company.DELETE("/:id", CompanyController.Delete)
+	}
 
-		artists.POST("/artists", ArtistController.Create)
-		artists.PUT("/artists/:id", ArtistController.Update)
-		artists.DELETE("/artists/:id", ArtistController.Delete)
+	// Artists routes
+	artist := protectedRoutes.Group("/artists")
+	{
+		artist.POST("", ArtistController.Create)
+		artist.PUT("/:id", ArtistController.Update)
+		artist.DELETE("/:id", ArtistController.Delete)
+	}
 
-		playlist.POST("/playlist", PlaylistController.Create)
-		playlist.PUT("/playlist/:id", PlaylistController.Update)
-		playlist.DELETE("/playlist/:id", PlaylistController.Delete)
+	// Playlist routes
+	playlists := protectedRoutes.Group("/playlist")
+	{
+		playlists.POST("", PlaylistController.Create)
+		playlists.PUT("/:id", PlaylistController.Update)
+		playlists.DELETE("/:id", PlaylistController.Delete)
+	}
 
-		songs.POST("/songs", SongController.Create)
-		songs.PUT("/songs/:id", SongController.Update)
-		songs.DELETE("/songs/:id", SongController.Delete)
+	// Songs routes
+	song := protectedRoutes.Group("/songs")
+	{
+		song.POST("", SongController.Create)
+		song.PUT("/:id", SongController.Update)
+		song.DELETE("/:id", SongController.Delete)
 	}
 
 	router.Run()

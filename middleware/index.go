@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"goapi/utils" // Replace with your actual project path
 	"net/http"
 	"strings"
 
@@ -18,8 +19,11 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-// Dummy token validation function (replace with actual logic)
-func isValidToken(token string) bool {
-	// Example token validation logic (replace with actual logic)
-	return strings.HasPrefix(token, "Bearer ")
+func isValidToken(tokenStr string) bool {
+	// Remove "Bearer " prefix
+	tokenStr = strings.TrimPrefix(tokenStr, "Bearer ")
+
+	// Parse and validate the token
+	_, err := utils.ParseToken(tokenStr)
+	return err == nil
 }
