@@ -2,6 +2,7 @@ package ArtistController
 
 import (
 	"net/http"
+	"strconv"
 
 	models "goapi/model/album"
 
@@ -19,9 +20,13 @@ func Index(c *gin.Context) {
 }
 
 func Show(c *gin.Context) {
-	id := c.Param("id")
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid ID"})
+		return
+	}
 	var artist models.Artist
-	if err := models.DB.First(&artist, id).Error; err != nil {
+	if err := models.DB.First(&artist, uint(id)).Error; err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "Artist not found"})
@@ -47,14 +52,18 @@ func Create(c *gin.Context) {
 }
 
 func Update(c *gin.Context) {
-	id := c.Param("id")
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid ID"})
+		return
+	}
 	var artist models.Artist
 	if err := c.ShouldBindJSON(&artist); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	result := models.DB.Model(&artist).Where("id = ?", id).Updates(&artist)
+	result := models.DB.Model(&artist).Where("id = ?", uint(id)).Updates(&artist)
 	if result.Error != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": result.Error.Error()})
 		return
@@ -67,9 +76,13 @@ func Update(c *gin.Context) {
 }
 
 func Delete(c *gin.Context) {
-	id := c.Param("id")
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid ID"})
+		return
+	}
 
-	if err := models.DB.Where("id = ?", id).Delete(&models.Artist{}).Error; err != nil {
+	if err := models.DB.Where("id = ?", uint(id)).Delete(&models.Artist{}).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}

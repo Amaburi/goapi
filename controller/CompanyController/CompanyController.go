@@ -2,6 +2,7 @@ package CompanyController
 
 import (
 	"net/http"
+	"strconv"
 
 	models "goapi/model/album"
 
@@ -19,7 +20,11 @@ func Index(c *gin.Context) {
 }
 
 func Show(c *gin.Context) {
-	id := c.Param("id")
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid ID"})
+		return
+	}
 	var company models.Company
 	if err := models.DB.First(&company, id).Error; err != nil {
 		switch err {
@@ -47,14 +52,18 @@ func Create(c *gin.Context) {
 }
 
 func Update(c *gin.Context) {
-	id := c.Param("id")
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid ID"})
+		return
+	}
 	var company models.Company
 	if err := c.ShouldBindJSON(&company); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	result := models.DB.Model(&company).Where("id = ?", id).Updates(&company)
+	result := models.DB.Model(&company).Where("id = ?", uint(id)).Updates(&company)
 	if result.Error != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": result.Error.Error()})
 		return
@@ -67,7 +76,11 @@ func Update(c *gin.Context) {
 }
 
 func Delete(c *gin.Context) {
-	id := c.Param("id")
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid ID"})
+		return
+	}
 
 	if err := models.DB.Where("id = ?", id).Delete(&models.Company{}).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
