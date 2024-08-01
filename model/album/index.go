@@ -44,8 +44,12 @@ type PlayList struct {
 	Artist string `gorm:"size:300" json:"artist"`
 	Likes  uint   `json:"likes"`
 	Saved  uint   `json:"saved"`
-	Song   Song   `gorm:"foreignKey:SongID"`
-	SongID uint   `json:"song_id"`
+	Songs  []Song `gorm:"many2many:playlist_songs" json:"songs"`
+}
+
+type PlaylistSongs struct {
+	PlayListID uint `gorm:"primaryKey"`
+	SongID     uint `gorm:"primaryKey"`
 }
 
 type Song struct {
@@ -76,6 +80,6 @@ func ConnectDB() {
 	}
 
 	// AutoMigrate the models
-	database.AutoMigrate(&Album{}, &Company{}, &Artist{}, &PlayList{}, &Song{}, &User{})
+	database.AutoMigrate(&Album{}, &Company{}, &Artist{}, &PlayList{}, &Song{}, &PlaylistSongs{}, User{})
 	DB = database
 }
