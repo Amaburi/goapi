@@ -24,6 +24,7 @@ func main() {
 	{
 		albums.GET("/", albumController.Index)
 		albums.GET("/:id", albumController.Show)
+		albums.GET("/filter", albumController.FilterGenres)
 	}
 
 	companies := router.Group("/api/companies")

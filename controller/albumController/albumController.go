@@ -12,11 +12,38 @@ import (
 
 func Index(c *gin.Context) {
 	var albums []models.Album
-	if err := models.DB.Find(&albums).Error; err != nil {
+	if err := models.DB.Preload("PlayList.Songs").Find(&albums).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Failed to fetch albums: " + err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"albums": albums})
+
+	var result []gin.H
+	for _, album := range albums {
+		result = append(result, gin.H{
+			"id":          album.ID,
+			"title":       album.Title,
+			"artist":      album.Artist,
+			"price":       album.Price,
+			"playlist_id": album.PlayListID,
+			"description": album.Description,
+			"awards":      album.Awards,
+			"genre":       album.Genre,
+			"releasedate": album.Relasedate,
+			"rating":      album.Rating,
+			"link":        album.Link,
+			"cover_art":   album.CoverArt,
+			"playlist": gin.H{
+				"id":     album.PlayList.ID,
+				"name":   album.PlayList.Name,
+				"artist": album.PlayList.Artist,
+				"likes":  album.PlayList.Likes,
+				"saved":  album.PlayList.Saved,
+				"songs":  album.PlayList.Songs,
+			},
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"albums": result})
 }
 
 func Show(c *gin.Context) {
@@ -43,11 +70,37 @@ func Create(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid request body: " + err.Error()})
 		return
 	}
+
 	if err := models.DB.Create(&album).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Failed to create album: " + err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"album": album})
+
+	var playlist models.PlayList
+	if album.PlayListID != 0 {
+		if err := models.DB.Preload("Songs").First(&playlist, album.PlayListID).Error; err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Failed to fetch playlist: " + err.Error()})
+			return
+		}
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"album": gin.H{
+			"id":          album.ID,
+			"title":       album.Title,
+			"artist":      album.Artist,
+			"price":       album.Price,
+			"playlist_id": album.PlayListID,
+			"description": album.Description,
+			"awards":      album.Awards,
+			"genre":       album.Genre,
+			"releasedate": album.Relasedate,
+			"rating":      album.Rating,
+			"link":        album.Link,
+			"cover_art":   album.CoverArt,
+		},
+		"playlist": playlist,
+	})
 }
 
 func Update(c *gin.Context) {
@@ -85,4 +138,29 @@ func Delete(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Album deleted successfully"})
+}
+
+func FilterGenres(c *gin.Context) {
+	var album []models.Album
+
+	if err := c.ShouldBindJSON(&album); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid request body: " + err.Error()})
+		return
+	}
+
+	genre := c.Query("genre")
+	if genre == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "There's no such a genre that you're looking for "})
+		return
+	}
+
+	result := models.DB.Where("genre = ?", genre).Find(&album)
+	if result.Error != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Failed to update album: " + result.Error.Error()})
+		return
+	}
+	if result.RowsAffected == 0 {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "Album not found"})
+		return
+	}
 }

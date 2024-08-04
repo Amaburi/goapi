@@ -13,12 +13,19 @@ import (
 var DB *gorm.DB
 
 type Album struct {
-	ID         uint     `gorm:"primaryKey" json:"id"`
-	Title      string   `gorm:"size:300" json:"title"`
-	Artist     string   `gorm:"size:300" json:"artist"`
-	Price      float64  `json:"price"`
-	PlayList   PlayList `gorm:"foreignKey:PlayListID"`
-	PlayListID uint     `json:"playlist_id"`
+	ID          uint     `gorm:"primaryKey" json:"id"`
+	Title       string   `gorm:"size:300" json:"title"`
+	Artist      string   `gorm:"size:300" json:"artist"`
+	Price       float64  `json:"price"`
+	PlayList    PlayList `gorm:"foreignKey:PlayListID"`
+	PlayListID  uint     `json:"playlist_id"`
+	Description string   `gorm:"size:300" json:"description"`
+	Awards      string   `gorm:"size:300" json:"awards"`
+	Genre       string   `gorm:"size:300" json:"genre"`
+	Relasedate  string   `gorm:"size:300" json:"releasedate"`
+	Rating      float64  `json:"rating"`
+	Link        string   `gorm:"size:300" json:"link"`
+	CoverArt    string   `gorm:"size:300" json:"cover_art"`
 }
 
 type Company struct {
@@ -29,13 +36,21 @@ type Company struct {
 }
 
 type Artist struct {
-	ID                 uint   `gorm:"primaryKey" json:"id"`
-	Name               string `gorm:"size:300" json:"name"`
-	Age                int    `json:"age"`
-	Address            string `gorm:"size:300" json:"address"`
-	PhoneNumber        string `gorm:"size:11" json:"phone"`
-	SocialMediaAccount string `gorm:"size:200" json:"social_media_account"`
-	Achievement        string `gorm:"size:100" json:"achievement"`
+	ID                 uint    `gorm:"primaryKey" json:"id"`
+	Name               string  `gorm:"size:300" json:"name"`
+	Age                int     `json:"age"`
+	Address            string  `gorm:"size:300" json:"address"`
+	PhoneNumber        string  `gorm:"size:11" json:"phone"`
+	SocialMediaAccount string  `gorm:"size:200" json:"social_media_account"`
+	Achievement        string  `gorm:"size:100" json:"achievement"`
+	Biography          string  `gorm:"size:1000" json:"biography"`
+	Nationality        string  `gorm:"size:100" json:"nationality"`
+	Website            string  `gorm:"size:200" json:"website"`
+	Email              string  `gorm:"size:100" json:"email"`
+	Labels             Company `gorm:"foreignKey:CompanyID" json:"labels"`
+	CompanyID          uint    `json:"company_id"`
+	Albums             []Album `gorm:"many2many:artist_albums" json:"albums"`
+	ProfilePicture     string  `gorm:"size:255" json:"profile_picture"`
 }
 
 type PlayList struct {
@@ -53,10 +68,13 @@ type PlaylistSongs struct {
 }
 
 type Song struct {
-	ID       uint   `gorm:"primaryKey" json:"id"`
-	Name     string `gorm:"size:300" json:"name"`
-	Artist   string `gorm:"size:300" json:"artist"`
-	Duration string `gorm:"size:300" json:"duration"`
+	ID         uint   `gorm:"primaryKey" json:"id"`
+	Name       string `gorm:"size:300" json:"name"`
+	Artist     string `gorm:"size:300" json:"artist"`
+	Duration   string `gorm:"size:300" json:"duration"`
+	CoverArt   string `gorm:"size:300" json:"cover_art"`
+	Relasedate string `gorm:"size:300" json:"releasedate"`
+	Genre      string `gorm:"size:300" json:"genre"`
 }
 
 type User struct {
