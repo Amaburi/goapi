@@ -187,3 +187,99 @@ func FilterGenres(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"albums": resultAlbums})
 }
+
+func FilterArtist(c *gin.Context) {
+	var albums []models.Album
+
+	artist := c.Query("artist")
+	if artist == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Please provide a artist to filter by."})
+		return
+	}
+
+	result := models.DB.Preload("PlayList.Songs").Where("artist = ?", artist).Find(&albums)
+	if result.Error != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Failed to fetch albums: " + result.Error.Error()})
+		return
+	}
+	if result.RowsAffected == 0 {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "No albums found for the specified artist."})
+		return
+	}
+
+	var resultAlbums []gin.H
+	for _, album := range albums {
+		resultAlbums = append(resultAlbums, gin.H{
+			"id":          album.ID,
+			"title":       album.Title,
+			"artist":      album.Artist,
+			"price":       album.Price,
+			"playlist_id": album.PlayListID,
+			"description": album.Description,
+			"awards":      album.Awards,
+			"genre":       album.Genre,
+			"releasedate": album.Relasedate,
+			"rating":      album.Rating,
+			"link":        album.Link,
+			"cover_art":   album.CoverArt,
+			"playlist": gin.H{
+				"id":     album.PlayList.ID,
+				"name":   album.PlayList.Name,
+				"artist": album.PlayList.Artist,
+				"likes":  album.PlayList.Likes,
+				"saved":  album.PlayList.Saved,
+				"songs":  album.PlayList.Songs,
+			},
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"albums": resultAlbums})
+}
+
+func FilterRating(c *gin.Context) {
+	var albums []models.Album
+
+	rating := c.Query("rating")
+	if rating == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Please provide a rating to filter by."})
+		return
+	}
+
+	result := models.DB.Preload("PlayList.Songs").Where("rating = ?", rating).Find(&albums)
+	if result.Error != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Failed to fetch albums: " + result.Error.Error()})
+		return
+	}
+	if result.RowsAffected == 0 {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "No albums found for the specified rating."})
+		return
+	}
+
+	var resultAlbums []gin.H
+	for _, album := range albums {
+		resultAlbums = append(resultAlbums, gin.H{
+			"id":          album.ID,
+			"title":       album.Title,
+			"artist":      album.Artist,
+			"price":       album.Price,
+			"playlist_id": album.PlayListID,
+			"description": album.Description,
+			"awards":      album.Awards,
+			"genre":       album.Genre,
+			"releasedate": album.Relasedate,
+			"rating":      album.Rating,
+			"link":        album.Link,
+			"cover_art":   album.CoverArt,
+			"playlist": gin.H{
+				"id":     album.PlayList.ID,
+				"name":   album.PlayList.Name,
+				"artist": album.PlayList.Artist,
+				"likes":  album.PlayList.Likes,
+				"saved":  album.PlayList.Saved,
+				"songs":  album.PlayList.Songs,
+			},
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"albums": resultAlbums})
+}
