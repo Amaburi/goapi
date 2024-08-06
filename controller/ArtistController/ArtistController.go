@@ -60,22 +60,77 @@ func Create(c *gin.Context) {
 	}
 
 	if len(artist.Albums) > 0 {
-		for _, album := range artist.Albums {
-
-			var existingAlbum models.Album
-			if err := models.DB.First(&existingAlbum, album.ID).Error; err != nil {
-				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid album ID: " + err.Error()})
-				return
+		for i, album := range artist.Albums {
+			if album.ID == 0 {
+				if err := models.DB.Create(&album).Error; err != nil {
+					c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Failed to create album: " + err.Error()})
+					return
+				}
+				artist.Albums[i] = album
+			} else {
+				var existingAlbum models.Album
+				if err := models.DB.First(&existingAlbum, album.ID).Error; err != nil {
+					c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid album ID: " + err.Error()})
+					return
+				}
 			}
 		}
+	}
 
+	if err := models.DB.Create(&artist).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Failed to create artist: " + err.Error()})
+		return
+	}
+
+	if len(artist.Albums) > 0 {
 		if err := models.DB.Model(&artist).Association("Albums").Append(artist.Albums); err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Failed to associate albums: " + err.Error()})
 			return
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{"artist": artist})
+	if err := models.DB.Preload("Labels").First(&artist, artist.ID).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Failed to fetch artist with labels: " + err.Error()})
+		return
+	}
+
+	albumsResponse := make([]gin.H, len(artist.Albums))
+	for i, album := range artist.Albums {
+		albumsResponse[i] = gin.H{
+			"id":          album.ID,
+			"title":       album.Title,
+			"artist":      album.Artist,
+			"price":       album.Price,
+			"playlist_id": album.PlayListID,
+			"description": album.Description,
+			"awards":      album.Awards,
+			"genre":       album.Genre,
+			"releasedate": album.Relasedate,
+			"rating":      album.Rating,
+			"link":        album.Link,
+			"cover_art":   album.CoverArt,
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"artist": gin.H{
+			"id":                   artist.ID,
+			"name":                 artist.Name,
+			"age":                  artist.Age,
+			"address":              artist.Address,
+			"phone":                artist.PhoneNumber,
+			"social_media_account": artist.SocialMediaAccount,
+			"achievement":          artist.Achievement,
+			"biography":            artist.Biography,
+			"nationality":          artist.Nationality,
+			"website":              artist.Website,
+			"email":                artist.Email,
+			"labels":               artist.Labels,
+			"company_id":           artist.CompanyID,
+			"albums":               albumsResponse,
+			"profile_picture":      artist.ProfilePicture,
+		},
+	})
 }
 
 func Update(c *gin.Context) {

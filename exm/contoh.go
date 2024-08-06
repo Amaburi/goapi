@@ -1,52 +1,24 @@
-// package main
+//func FilterGenres(c *gin.Context) {
+//	var album []models.Album
 
-// import (
-// 	"net/http"
+//	if err := c.ShouldBindJSON(&album); err != nil {
+//		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid request body: " + err.Error()})
+//		return
+//	}
 
-// 	"github.com/gin-gonic/gin"
-// )
+//	genre := c.Query("genre")
+//	if genre == "" {
+//		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "There's no such a genre that you're looking for "})
+//		return
+//	}
 
-// func postAlbums(c *gin.Context) {
-// 	var newAlbum album
-
-// 	// Call BindJSON to bind the received JSON to
-// 	// newAlbum.
-// 	if err := c.BindJSON(&newAlbum); err != nil {
-// 		return
-// 	}
-
-// 	// Add the new album to the slice.
-// 	albums = append(albums, newAlbum)
-// 	c.IndentedJSON(http.StatusCreated, newAlbum)
-// }
-// func awal(c *gin.Context) {
-// 	c.JSON(200, gin.H{
-// 		"data": "Hello from Gin-gonic & mongoDB",
-// 	})
-// }
-// func main() {
-// 	router := gin.Default()
-
-// 	router.GET("/albums", func(c *gin.Context) {
-// 		if albums == nil || len(albums) == 0 {
-// c.AbortWithStatus(http.StatusNotFound)
-// 		} else {
-// 			c.IndentedJSON(http.StatusOK, albums)
-// 		}
-// 	})
-
-// 	router.GET("/albums/:id", func(c *gin.Context) {
-// 		id := c.Param("id")
-// 		for _, a := range albums {
-// 			if a.ID == id {
-// 				c.IndentedJSON(http.StatusOK, a)
-// 				return
-// 			}
-// 		}
-// 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
-// 	})
-
-// 	router.POST("/albums", postAlbums)
-// 	router.GET("/", awal)
-// 	router.Run("localhost:8080")
+//	result := models.DB.Where("genre = ?", genre).Find(&album)
+//	if result.Error != nil {
+//		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Failed to update album: " + result.Error.Error()})
+//		return
+//	}
+//	if result.RowsAffected == 0 {
+//		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "Album not found"})
+//		return
+//	}
 // }

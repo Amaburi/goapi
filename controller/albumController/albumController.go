@@ -141,26 +141,49 @@ func Delete(c *gin.Context) {
 }
 
 func FilterGenres(c *gin.Context) {
-	var album []models.Album
-
-	if err := c.ShouldBindJSON(&album); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid request body: " + err.Error()})
-		return
-	}
+	var albums []models.Album
 
 	genre := c.Query("genre")
 	if genre == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "There's no such a genre that you're looking for "})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Please provide a genre to filter by."})
 		return
 	}
 
-	result := models.DB.Where("genre = ?", genre).Find(&album)
+	result := models.DB.Preload("PlayList.Songs").Where("genre = ?", genre).Find(&albums)
 	if result.Error != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Failed to update album: " + result.Error.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Failed to fetch albums: " + result.Error.Error()})
 		return
 	}
 	if result.RowsAffected == 0 {
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "Album not found"})
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "No albums found for the specified genre."})
 		return
 	}
+
+	var resultAlbums []gin.H
+	for _, album := range albums {
+		resultAlbums = append(resultAlbums, gin.H{
+			"id":          album.ID,
+			"title":       album.Title,
+			"artist":      album.Artist,
+			"price":       album.Price,
+			"playlist_id": album.PlayListID,
+			"description": album.Description,
+			"awards":      album.Awards,
+			"genre":       album.Genre,
+			"releasedate": album.Relasedate,
+			"rating":      album.Rating,
+			"link":        album.Link,
+			"cover_art":   album.CoverArt,
+			"playlist": gin.H{
+				"id":     album.PlayList.ID,
+				"name":   album.PlayList.Name,
+				"artist": album.PlayList.Artist,
+				"likes":  album.PlayList.Likes,
+				"saved":  album.PlayList.Saved,
+				"songs":  album.PlayList.Songs,
+			},
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"albums": resultAlbums})
 }
