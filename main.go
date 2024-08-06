@@ -39,6 +39,7 @@ func main() {
 	{
 		artists.GET("/", ArtistController.Index)
 		artists.GET("/:id", ArtistController.Show)
+		artists.GET("/filterNationality", ArtistController.FilterNationality)
 	}
 
 	playlist := router.Group("/api/playlist")
