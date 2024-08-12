@@ -79,7 +79,60 @@ func Show(c *gin.Context) {
 		}
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"artist": artist})
+	var album models.Album
+	if err := models.DB.First(&album).Error; err != nil {
+		switch err {
+		case gorm.ErrRecordNotFound:
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "Album not found"})
+		default:
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		}
+		return
+	}
+	if err := models.DB.Preload("Labels").Find(&artist).Error; err != nil {
+		switch err {
+		case gorm.ErrRecordNotFound:
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "Labels not found"})
+		default:
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		}
+		return
+	}
+	albumsResponse := make([]gin.H, len(artist.Albums))
+	for j, album := range artist.Albums {
+		albumsResponse[j] = gin.H{
+			"id":          album.ID,
+			"title":       album.Title,
+			"artist":      album.Artist,
+			"price":       album.Price,
+			"playlist_id": album.PlayListID,
+			"description": album.Description,
+			"awards":      album.Awards,
+			"genre":       album.Genre,
+			"releasedate": album.Relasedate,
+			"rating":      album.Rating,
+			"link":        album.Link,
+			"cover_art":   album.CoverArt,
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"id":                   artist.ID,
+		"name":                 artist.Name,
+		"age":                  artist.Age,
+		"address":              artist.Address,
+		"phone":                artist.PhoneNumber,
+		"social_media_account": artist.SocialMediaAccount,
+		"achievement":          artist.Achievement,
+		"biography":            artist.Biography,
+		"nationality":          artist.Nationality,
+		"website":              artist.Website,
+		"email":                artist.Email,
+		"labels":               artist.Labels,
+		"company_id":           artist.CompanyID,
+		"albums":               albumsResponse,
+		"profile_picture":      artist.ProfilePicture,
+	})
 }
 func Create(c *gin.Context) {
 	var artist models.Artist
