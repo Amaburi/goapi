@@ -61,7 +61,32 @@ func Show(c *gin.Context) {
 		}
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"album": album})
+
+	var playlist models.PlayList
+	if album.PlayListID != 0 {
+		if err := models.DB.Preload("Songs").First(&playlist, album.PlayListID).Error; err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Failed to fetch playlist: " + err.Error()})
+			return
+		}
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"album": gin.H{
+			"id":          album.ID,
+			"title":       album.Title,
+			"artist":      album.Artist,
+			"price":       album.Price,
+			"playlist_id": album.PlayListID,
+			"description": album.Description,
+			"awards":      album.Awards,
+			"genre":       album.Genre,
+			"releasedate": album.Relasedate,
+			"rating":      album.Rating,
+			"link":        album.Link,
+			"cover_art":   album.CoverArt,
+		},
+		"playlist": playlist,
+	})
 }
 
 func Create(c *gin.Context) {
